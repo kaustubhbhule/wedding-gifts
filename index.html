@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Gift Registry</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,123,255,0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40,167,69,0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220,53,69,0.3);
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+            transition: background 0.2s ease;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💝 Wedding Gift Registry</h1>
+            <p>Track gifts received at sister's wedding ceremony</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="openModal()">
+                ➕ Add Gift Entry
+            </button>
+            <button class="btn btn-success" onclick="exportToPDF()">
+                📄 Export to PDF
+            </button>
+            <button class="btn" onclick="clearAllData()" style="background: #6c757d; color: white;">
+                🗑️ Clear All Data
+            </button>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat">
+                <div class="stat-value" id="totalRecords">0</div>
+                <div class="stat-label">Total Gifts</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalAmount">₹0</div>
+                <div class="stat-label">Total Value</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="avgAmount">₹0</div>
+                <div class="stat-label">Average Gift</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="recordsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Village</th>
+                        <th>Rupees</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+            <div class="empty-state" id="emptyState">
+                <h3>No gifts recorded yet</h3>
+                <p>Click "Add Gift Entry" to start tracking wedding gifts</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Gift Entry</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="recordForm">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="village">Village:</label>
+                        <input type="text" id="village" name="village" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rupees">Rupees:</label>
+                        <input type="number" id="rupees" name="rupees" min="0" step="0.01" required>
+                    </div>
+                    <div style="text-align: right; margin-top: 30px;">
+                        <button type="button" class="btn" onclick="closeModal()" style="background: #6c757d; color: white; margin-right: 10px;">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Gift</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+
+        // Cookie helper functions
+        function setCookie(name, value, days) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+            }
+            return null;
+        }
+
+        // Save records to cookies
+        function saveRecords() {
+            setCookie('weddingGifts', JSON.stringify(records), 365); // Store for 1 year
+        }
+
+        // Load records from cookies on page load
+        function loadRecords() {
+            const savedRecords = getCookie('weddingGifts');
+            if (savedRecords) {
+                try {
+                    records = JSON.parse(savedRecords);
+                } catch (e) {
+                    console.error('Error loading saved records:', e);
+                    records = [];
+                }
+            }
+            updateTable();
+            updateStats();
+        }
+
+        // Open modal
+        function openModal() {
+            document.getElementById('recordModal').style.display = 'block';
+            document.getElementById('recordForm').reset();
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('recordModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('recordModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('recordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const village = document.getElementById('village').value.trim();
+            const rupees = parseFloat(document.getElementById('rupees').value);
+
+            if (name && village && rupees >= 0) {
+                const record = {
+                    id: Date.now(),
+                    name: name,
+                    village: village,
+                    rupees: rupees
+                };
+
+                records.push(record);
+                saveRecords(); // Save to cookies
+                updateTable();
+                updateStats();
+                closeModal();
+            }
+        });
+
+        // Update table display
+        function updateTable() {
+            const tableBody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (records.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('recordsTable').style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                document.getElementById('recordsTable').style.display = 'table';
+                
+                tableBody.innerHTML = records.map(record => `
+                    <tr>
+                        <td>${record.name}</td>
+                        <td>${record.village}</td>
+                        <td>₹${record.rupees.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteRecord(${record.id})">
+                                🗑️ Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalRecords = records.length;
+            const totalAmount = records.reduce((sum, record) => sum + record.rupees, 0);
+            const avgAmount = totalRecords > 0 ? totalAmount / totalRecords : 0;
+
+            document.getElementById('totalRecords').textContent = totalRecords.toLocaleString();
+            document.getElementById('totalAmount').textContent = `₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('avgAmount').textContent = `₹${avgAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Delete record
+        function deleteRecord(id) {
+            if (confirm('Are you sure you want to delete this gift entry?')) {
+                records = records.filter(record => record.id !== id);
+                saveRecords(); // Save to cookies
+                updateTable();
+                updateStats();
+            }
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            if (records.length === 0) {
+                alert('No gift entries to export!');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Title
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Wedding Gift Registry', 105, 20, { align: 'center' });
+            
+            // Date
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')}`, 105, 30, { align: 'center' });
+
+            // Statistics
+            const totalAmount = records.reduce((sum, record) => sum + record.rupees, 0);
+            const avgAmount = records.length > 0 ? totalAmount / records.length : 0;
+
+            doc.setFontSize(10);
+            doc.text(`Total Gifts: ${records.length}`, 20, 45);
+            doc.text(`Total Value: ₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 52);
+            doc.text(`Average Gift: ₹${avgAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 59);
+
+            // Table
+            const tableData = records.map(record => [
+                record.name,
+                record.village,
+                `₹${record.rupees.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+            ]);
+
+            doc.autoTable({
+                head: [['Name', 'Village', 'Rupees']],
+                body: tableData,
+                startY: 70,
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3
+                },
+                headStyles: {
+                    fillColor: [73, 80, 87],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 249, 250]
+                }
+            });
+
+            // Save the PDF
+            doc.save('wedding-gift-registry.pdf');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all gift entries? This action cannot be undone.')) {
+                records = [];
+                saveRecords(); // Clear cookies
+                updateTable();
+                updateStats();
+                alert('All data has been cleared successfully.');
+            }
+        }
+
+        // Initialize the app
+        loadRecords();
+    </script>
+</body>
+</html>
