@@ -336,6 +336,9 @@
             <button class="btn" onclick="clearAllData()" style="background: #6c757d; color: white;">
                 🗑️ Clear All Data
             </button>
+            <button class="btn" onclick="testStorage()" style="background: #17a2b8; color: white;">
+                🔧 Test Storage
+            </button>
         </div>
 
         <div class="stats" id="stats">
@@ -438,39 +441,31 @@ Rahul Kumar, Pune, 1500"></textarea>
     <script>
         let records = [];
 
-        // Cookie helper functions
-        function setCookie(name, value, days) {
-            const expires = new Date();
-            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/`;
-        }
-
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for(let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-            }
-            return null;
-        }
-
-        // Save records to cookies
+        // Save records to localStorage
         function saveRecords() {
-            setCookie('weddingGifts', JSON.stringify(records), 365);
+            try {
+                localStorage.setItem('weddingGifts', JSON.stringify(records));
+                console.log(`✅ Saved ${records.length} records successfully`);
+            } catch (error) {
+                console.error('❌ Error saving records:', error);
+                alert('Error saving data! Please try again.');
+            }
         }
 
-        // Load records from cookies on page load
+        // Load records from localStorage on page load
         function loadRecords() {
-            const savedRecords = getCookie('weddingGifts');
-            if (savedRecords) {
-                try {
+            try {
+                const savedRecords = localStorage.getItem('weddingGifts');
+                if (savedRecords) {
                     records = JSON.parse(savedRecords);
-                } catch (e) {
-                    console.error('Error loading saved records:', e);
-                    records = [];
+                    console.log(`✅ Loaded ${records.length} records successfully`);
+                } else {
+                    console.log('ℹ️ No saved records found');
                 }
+            } catch (e) {
+                console.error('❌ Error loading saved records:', e);
+                records = [];
+                alert('Error loading saved data. Starting fresh.');
             }
             updateTable();
             updateStats();
@@ -714,6 +709,42 @@ Rahul Kumar, Pune, 1500"></textarea>
                 alert('All data has been cleared successfully.');
             }
         }
+
+        // Test storage functionality
+        function testStorage() {
+            try {
+                // Test localStorage
+                const testData = { test: 'data', timestamp: new Date().toISOString() };
+                localStorage.setItem('storageTest', JSON.stringify(testData));
+                const retrieved = localStorage.getItem('storageTest');
+                
+                if (retrieved) {
+                    const parsed = JSON.parse(retrieved);
+                    localStorage.removeItem('storageTest');
+                    alert(`✅ Storage is working!\n\nCurrent records: ${records.length}\nTest data saved and retrieved successfully.\n\nStorage space available: ${(navigator.storage && navigator.storage.estimate) ? 'Checking...' : 'Unknown'}`);
+                } else {
+                    alert('❌ Storage test failed - unable to save/retrieve data');
+                }
+            } catch (error) {
+                alert(`❌ Storage error: ${error.message}\n\nThis might be due to:\n- Private/Incognito browsing\n- Browser storage disabled\n- Storage quota exceeded`);
+            }
+        }
+
+        // Auto-save when page is about to close
+        window.addEventListener('beforeunload', function(event) {
+            if (records.length > 0) {
+                saveRecords();
+                console.log('💾 Auto-saved on page unload');
+            }
+        });
+
+        // Save data when page becomes hidden (mobile switching)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden' && records.length > 0) {
+                saveRecords();
+                console.log('💾 Auto-saved on visibility change');
+            }
+        });
 
         // Initialize the app
         loadRecords();
