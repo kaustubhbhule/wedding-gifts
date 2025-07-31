@@ -651,52 +651,51 @@ Rahul Kumar, Pune, 1500"></textarea>
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Title
-            doc.setFontSize(20);
+            // Simple title
+            doc.setFontSize(18);
             doc.setFont(undefined, 'bold');
-            doc.text('Wedding Gift Registry', 105, 20, { align: 'center' });
+            doc.text('Wedding Gift Registry', 20, 20);
             
-            // Date
+            // Date and summary
             doc.setFontSize(12);
             doc.setFont(undefined, 'normal');
-            doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')}`, 105, 30, { align: 'center' });
-
-            // Statistics
-            const totalAmount = records.reduce((sum, record) => sum + record.rupees, 0);
-            const avgAmount = records.length > 0 ? totalAmount / records.length : 0;
-
-            doc.setFontSize(10);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 35);
             doc.text(`Total Gifts: ${records.length}`, 20, 45);
-            doc.text(`Total Value: Rs. ${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 52);
-            doc.text(`Average Gift: Rs. ${avgAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 59);
+            
+            const totalAmount = records.reduce((sum, record) => sum + record.rupees, 0);
+            doc.text(`Total Amount: ${totalAmount.toFixed(2)}`, 20, 55);
 
-            // Table
-            const tableData = records.map(record => [
+            // Simple table without special characters
+            const tableData = records.map((record, index) => [
+                (index + 1).toString(), // Serial number
                 record.name,
                 record.village,
-                `Rs. ${record.rupees.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+                record.rupees.toFixed(2) // Simple number format
             ]);
 
             doc.autoTable({
-                head: [['Name', 'Village', 'Rupees']],
+                head: [['S.No', 'Name', 'Village', 'Amount']],
                 body: tableData,
                 startY: 70,
                 styles: {
-                    fontSize: 10,
-                    cellPadding: 3
+                    fontSize: 9,
+                    cellPadding: 2
                 },
                 headStyles: {
-                    fillColor: [73, 80, 87],
-                    textColor: 255,
+                    fillColor: [200, 200, 200],
+                    textColor: [0, 0, 0],
                     fontStyle: 'bold'
                 },
-                alternateRowStyles: {
-                    fillColor: [248, 249, 250]
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 15 }, // S.No
+                    1: { cellWidth: 60 }, // Name
+                    2: { cellWidth: 50 }, // Village  
+                    3: { halign: 'right', cellWidth: 30 } // Amount
                 }
             });
 
             // Save the PDF
-            doc.save('wedding-gift-registry.pdf');
+            doc.save('wedding-gifts.pdf');
         }
 
         // Clear all data
