@@ -340,7 +340,7 @@
                         <th>Name</th>
                         <th>Village</th>
                         <th>Rupees</th>
-                        <th>Action</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -386,6 +386,7 @@
 
     <script>
         let records = [];
+        let editingId = null; // Track which record is being edited
 
         // Cookie helper functions
         function setCookie(name, value, days) {
@@ -427,13 +428,31 @@
 
         // Open modal
         function openModal() {
+            editingId = null;
             document.getElementById('recordModal').style.display = 'block';
             document.getElementById('recordForm').reset();
+            document.querySelector('.modal-header h2').textContent = 'Add Gift Entry';
+            document.querySelector('button[type="submit"]').textContent = 'Save Gift';
+        }
+
+        // Edit record
+        function editRecord(id) {
+            const record = records.find(r => r.id === id);
+            if (record) {
+                editingId = id;
+                document.getElementById('name').value = record.name;
+                document.getElementById('village').value = record.village;
+                document.getElementById('rupees').value = record.rupees;
+                document.getElementById('recordModal').style.display = 'block';
+                document.querySelector('.modal-header h2').textContent = 'Edit Gift Entry';
+                document.querySelector('button[type="submit"]').textContent = 'Update Gift';
+            }
         }
 
         // Close modal
         function closeModal() {
             document.getElementById('recordModal').style.display = 'none';
+            editingId = null;
         }
 
         // Close modal when clicking outside
@@ -441,6 +460,7 @@
             const modal = document.getElementById('recordModal');
             if (event.target == modal) {
                 modal.style.display = 'none';
+                editingId = null;
             }
         }
 
@@ -453,14 +473,28 @@
             const rupees = parseFloat(document.getElementById('rupees').value);
 
             if (name && village && rupees >= 0) {
-                const record = {
-                    id: Date.now(),
-                    name: name,
-                    village: village,
-                    rupees: rupees
-                };
+                if (editingId) {
+                    // Update existing record
+                    const recordIndex = records.findIndex(r => r.id === editingId);
+                    if (recordIndex !== -1) {
+                        records[recordIndex] = {
+                            ...records[recordIndex],
+                            name: name,
+                            village: village,
+                            rupees: rupees
+                        };
+                    }
+                } else {
+                    // Add new record
+                    const record = {
+                        id: Date.now(),
+                        name: name,
+                        village: village,
+                        rupees: rupees
+                    };
+                    records.push(record);
+                }
 
-                records.push(record);
                 saveRecords(); // Save to cookies
                 updateTable();
                 updateStats();
@@ -487,7 +521,10 @@
                         <td>${record.village}</td>
                         <td>₹${record.rupees.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                         <td>
-                            <button class="btn btn-danger" onclick="deleteRecord(${record.id})">
+                            <button class="btn btn-primary" onclick="editRecord(${record.id})" style="margin-right: 8px; padding: 6px 12px; font-size: 12px;">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteRecord(${record.id})" style="padding: 6px 12px; font-size: 12px;">
                                 🗑️ Delete
                             </button>
                         </td>
@@ -572,22 +609,4 @@
             });
 
             // Save the PDF
-            doc.save('wedding-gift-registry.pdf');
-        }
-
-        // Clear all data
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all gift entries? This action cannot be undone.')) {
-                records = [];
-                saveRecords(); // Clear cookies
-                updateTable();
-                updateStats();
-                alert('All data has been cleared successfully.');
-            }
-        }
-
-        // Initialize the app
-        loadRecords();
-    </script>
-</body>
-</html>
+            doc.save('wedding-gift-registry
