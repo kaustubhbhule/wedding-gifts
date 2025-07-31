@@ -667,14 +667,14 @@ Rahul Kumar, Pune, 1500"></textarea>
 
             doc.setFontSize(10);
             doc.text(`Total Gifts: ${records.length}`, 20, 45);
-            doc.text(`Total Value: ₹${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 52);
-            doc.text(`Average Gift: ₹${avgAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 59);
+            doc.text(`Total Value: Rs. ${totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 52);
+            doc.text(`Average Gift: Rs. ${avgAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 20, 59);
 
             // Table
             const tableData = records.map(record => [
                 record.name,
                 record.village,
-                `₹${record.rupees.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+                `Rs. ${record.rupees.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
             ]);
 
             doc.autoTable({
